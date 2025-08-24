@@ -1,0 +1,87 @@
+<!DOCTYPE html>
+<html>
+<head>
+  <meta charset="utf-8" />
+  <title>Smart Bus System</title>
+  <meta name="viewport" content="width=device-width, initial-scale=1" />
+  <link
+    rel="stylesheet"
+    href="https://unpkg.com/leaflet@1.9.4/dist/leaflet.css"
+  />
+  <style>
+    body { margin:0; font-family: Arial, sans-serif; }
+    #map { height: 70vh; }
+    .panel { padding: 12px; }
+    .badge { padding:6px 10px; border-radius:8px; background:#eee; margin:4px; display:inline-block; }
+    .alert { background:#ffcccc; }
+    button { padding:8px 14px; border:none; border-radius:8px; margin-top:8px; }
+    .sosBtn { background:red; color:white; cursor:pointer; }
+  </style>
+</head>
+<body>
+  <div id="map"></div>
+  <div class="panel">
+    <span class="badge">Bus: <b id="busId">bus01</b></span>
+    <span class="badge">Count: <b id="count">0</b></span>
+    <span class="badge">Speed: <b id="speed">0</b> km/h</span>
+    <span class="badge alert" id="remoteSOS" style="display:none;">🚨 SOS Activated</span>
+    <br>
+    <button class="sosBtn" id="sosBtn">🚨 Send SOS</button>
+    <button id="clearBtn">Clear SOS</button>
+  </div>
+
+  <script src="https://unpkg.com/leaflet@1.9.4/dist/leaflet.js"></script>
+  <script type="module">
+    // Paste your firebaseConfig here:
+    const firebaseConfig = {
+      apiKey: "AIzaSyC1jhmkP-QzPr4roA4rA93E_RChJvX6BUo",
+      authDomain: "collegebus-607d6.firebaseapp.com",
+      databaseURL: "https://collegebus-607d6-default-rtdb.asia-southeast1.firebasedatabase.app",
+      projectId: "collegebus-607d6",
+      appId: "1:116424321422:web:a614647f3f6c13ca655cdf"
+    };
+
+    import { initializeApp } from "https://www.gstatic.com/firebasejs/9.23.0/firebase-app.js";
+    import { getDatabase, ref, onValue, set } from "https://www.gstatic.com/firebasejs/9.23.0/firebase-database.js";
+
+    const app = initializeApp(firebaseConfig);
+    const db  = getDatabase(app);
+
+    const BUS_ID = "bus01";
+
+    // Map
+    const map = L.map('map').setView([18.52, 73.85], 13);
+    L.tileLayer('https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png').addTo(map);
+    const marker = L.marker([18.52,73.85]).addTo(map);
+
+    // Listen for bus updates
+    const busRef = ref(db, `buses/${BUS_ID}`);
+    onValue(busRef, (snap) => {
+      const data = snap.val();
+      if (!data) return;
+      const loc = data.location || {};
+      if (loc.lat && loc.lng) {
+        marker.setLatLng([loc.lat, loc.lng]);
+        map.panTo([loc.lat, loc.lng]);
+      }
+      document.getElementById('count').textContent = data.count ?? 0;
+      document.getElementById('speed').textContent = loc.speed ?? 0;
+      document.getElementById('remoteSOS').style.display =
+        data.alerts?.remoteSOS ? 'inline-block' : 'none';
+    });
+
+    // SOS button
+    document.getElementById("sosBtn").addEventListener("click", () => {
+      const sosRef = ref(db, `buses/${BUS_ID}/alerts/remoteSOS`);
+      set(sosRef, true);
+      alert("🚨 SOS sent");
+    });
+
+    // Clear button
+    document.getElementById("clearBtn").addEventListener("click", () => {
+      const sosRef = ref(db, `buses/${BUS_ID}/alerts/remoteSOS`);
+      set(sosRef, false);
+    });
+  </script>
+</body>
+</html>

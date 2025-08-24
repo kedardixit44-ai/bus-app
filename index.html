@@ -4,10 +4,7 @@
   <meta charset="utf-8" />
   <title>Smart Bus System</title>
   <meta name="viewport" content="width=device-width, initial-scale=1" />
-  <link
-    rel="stylesheet"
-    href="https://unpkg.com/leaflet@1.9.4/dist/leaflet.css"
-  />
+  <link rel="stylesheet" href="https://unpkg.com/leaflet@1.9.4/dist/leaflet.css"/>
   <style>
     body { margin:0; font-family: Arial, sans-serif; }
     #map { height: 70vh; }
@@ -32,12 +29,14 @@
 
   <script src="https://unpkg.com/leaflet@1.9.4/dist/leaflet.js"></script>
   <script type="module">
-    // Paste your firebaseConfig here:
+    // Firebase config
     const firebaseConfig = {
       apiKey: "AIzaSyC1jhmkP-QzPr4roA4rA93E_RChJvX6BUo",
       authDomain: "collegebus-607d6.firebaseapp.com",
       databaseURL: "https://collegebus-607d6-default-rtdb.asia-southeast1.firebasedatabase.app",
       projectId: "collegebus-607d6",
+      storageBucket: "collegebus-607d6.appspot.com",
+      messagingSenderId: "116424321422",
       appId: "1:116424321422:web:a614647f3f6c13ca655cdf"
     };
 
@@ -49,10 +48,19 @@
 
     const BUS_ID = "bus01";
 
-    // Map
-    const map = L.map('map').setView([18.52, 73.85], 13);
+    // Map centered at VDF Latur
+    const map = L.map('map').setView([18.40918, 76.5587], 15);
+
     L.tileLayer('https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png').addTo(map);
-    const marker = L.marker([18.52,73.85]).addTo(map);
+
+    // Custom bus icon
+    const busIcon = L.icon({
+      iconUrl: "bus.png",  // make sure bus.png exists in same folder
+      iconSize: [40, 40],
+      iconAnchor: [20, 40]
+    });
+
+    const marker = L.marker([18.40918, 76.5587], { icon: busIcon }).addTo(map);
 
     // Listen for bus updates
     const busRef = ref(db, `buses/${BUS_ID}`);
